@@ -26,5 +26,11 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    public bool isGameStarted { get; set; } 
+    public bool isGameStarted { get; set; }
+
+    private void Start()
+    {
+        //Pelin resoluutio ja full screen = true tai false.
+        Screen.SetResolution(540, 960, false);
+    }
 }
