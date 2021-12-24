@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,7 +13,7 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         //Tarkistetaan, että on vain yksi instanssi. Jos löytyy jo olemassaoleva, se tuhotaan.
-        if(_instance != null)
+        if (_instance != null)
         {
             Destroy(gameObject);
 
@@ -25,12 +27,76 @@ public class GameManager : MonoBehaviour
 
 
     #endregion
+    public GameObject gameOverScreen;
+    public GameObject victoryScreen;
 
-    public bool isGameStarted { get; set; }
+    public int AvailableLives;
+
+    public int Lives { get; set; }
+
+    public bool IsGameStarted { get; set; }
+    public static event Action<int> OnLiveLost;
 
     private void Start()
     {
+        this.Lives = this.AvailableLives;
         //Pelin resoluutio ja full screen = true tai false.
         Screen.SetResolution(540, 960, false);
+        Ball.onBallDeath += OnBallDeath;
+        Brick.OnBrickDestruction += OnBrickDestruction;
+    }
+
+    private void OnBrickDestruction(Brick obj)
+    {
+        if(BricksManager.Instance.remainingBricks.Count <= 0)
+        {
+            BallsManager.Instance.ResetBalls();
+            GameManager.Instance.IsGameStarted = false;
+            BricksManager.Instance.loadNextLevel();
+        }
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void ReturnMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
+        //GameObject.FindGameObjectWithTag("Music").GetComponent<Music>().PlayMusic();
+    }
+
+    private void OnBallDeath(Ball obj)
+    {
+        //Jos palloja on jäljellä nolla, pelaaja häviää ja peli alkaa alusta.
+        if (BallsManager.Instance.balls.Count <= 0)
+        {
+            this.Lives--;
+
+            if (this.Lives < 1)
+            {
+                //Näytetään game over ruutu.
+                gameOverScreen.SetActive(true);
+            }
+            else
+            {
+                OnLiveLost?.Invoke(this.Lives);
+                //Nollataan pallot ja ladataan taso uudelleen.
+                BallsManager.Instance.ResetBalls();
+                IsGameStarted = false;
+                BricksManager.Instance.loadLevel(BricksManager.Instance.CurrentLevel);
+            }
+        }
+    }
+
+    internal void ShowVictory()
+    {
+        victoryScreen.SetActive(true);
+    }
+
+    private void OnDisable()
+    {
+       Ball.onBallDeath -= OnBallDeath;
     }
 }

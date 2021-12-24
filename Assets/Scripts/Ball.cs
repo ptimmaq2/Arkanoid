@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,15 +6,10 @@ using UnityEngine;
 //Pallon hallinta
 public class Ball : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public static Action<Ball> onBallDeath;
+    public void Die()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        onBallDeath?.Invoke(this);
+        Destroy(gameObject, 1);
     }
 }

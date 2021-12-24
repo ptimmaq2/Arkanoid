@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 //Lukee levels.txt tiedoston, k‰sittelee tiedot ja luo listan matrixeja.
 public class BricksManager : MonoBehaviour
@@ -10,6 +12,7 @@ public class BricksManager : MonoBehaviour
     #region Singleton
     private static BricksManager _instance;
     public static BricksManager Instance => _instance;
+    public static event Action OnLevelLoaded; 
 
     private void Awake()
     {
@@ -41,18 +44,39 @@ public class BricksManager : MonoBehaviour
     public int initBricksCount { get; set; }
 
     public int CurrentLevel;
+    public Text nextLevelText;
+
 
     private void Start()
     {
         this.bricksContainer = new GameObject("BricksContainer");
-        this.remainingBricks = new List<Brick>();
+     
         this.levelData = this.loadLevelsData();
         this.GenerateBricks();
+        Debug.Log("Tasojen m‰‰r‰: " + this.levelData.Count);
+    }
 
+    public void loadNextLevel()
+    {
+        //Ladataan seuraava taso.
+        CurrentLevel++;
+
+        if(this.CurrentLevel >= this.levelData.Count)
+        {
+            GameManager.Instance.ShowVictory();
+        }
+        else
+        {
+            this.loadLevel(this.CurrentLevel);
+        }
+
+        //Lis‰‰ tekstin ajastus.
     }
 
     private void GenerateBricks()
     {
+        this.remainingBricks = new List<Brick>();
+
         int[,] currentLevelData = this.levelData[this.CurrentLevel];
         float currentSpawnX = initialBrickSpawnPosX;
         float currentSpawnY = initialBrickSpawnPosY;
@@ -87,6 +111,23 @@ public class BricksManager : MonoBehaviour
             currentSpawnY -= shiftAmount;
         }
         this.initBricksCount = this.remainingBricks.Count;
+        OnLevelLoaded?.Invoke();
+    }
+
+    public void loadLevel(int level)
+    {
+        this.CurrentLevel = level;
+        this.ClearRemainingBricks(); //Tuhotaan edellisen kierroksen j‰ljilt‰ olevat tiilet.
+        this.GenerateBricks(); //luodaan tiilet.
+    }
+
+    private void ClearRemainingBricks()
+    {
+        foreach (Brick brick in this.remainingBricks.ToList())
+        {
+            Destroy(brick.gameObject);
+                
+        }
     }
 
     private List<int[,]> loadLevelsData()

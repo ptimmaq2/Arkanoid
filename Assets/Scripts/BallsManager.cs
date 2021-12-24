@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 //Pallojen hallinta
@@ -44,7 +46,7 @@ public class BallsManager : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.Instance.isGameStarted) //Jos peli ei ole alkanut, laitetaan pallo lähelle platformia.
+        if (!GameManager.Instance.IsGameStarted) //Jos peli ei ole alkanut, laitetaan pallo lähelle platformia.
         {
             Vector3 platPos = Platform.Instance.gameObject.transform.position;
             Vector3 ballPos = new Vector3(platPos.x, platPos.y + .27f, 0);
@@ -57,11 +59,23 @@ public class BallsManager : MonoBehaviour
                 startingBallRb.isKinematic = false;
                 startingBallRb.AddForce(new Vector2(0, initialSpeed));
 
-                GameManager.Instance.isGameStarted = true; //Asetetaan peli alkaneeksi.
+                GameManager.Instance.IsGameStarted = true; //Asetetaan peli alkaneeksi.
             }
         }
 
     }
+
+    public void ResetBalls()
+    {
+        foreach (var ball in this.balls.ToList())
+        {
+            Destroy(ball.gameObject);
+        }
+
+        InitializeBall();
+    }
+
+
     private void InitializeBall()
     {
         //Haetaan platformin alkusijainti.

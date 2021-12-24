@@ -27,10 +27,12 @@ public class Brick : MonoBehaviour
 
     private void ApplyCollisionLogic(Ball ball)
     {
-        //tuhotaan tiili.
+        //tuhotaan tiili ja poistetaan se remainingbricksistä.
+
         this.hitpoints--;
         if (this.hitpoints <= 0) 
         {
+            BricksManager.Instance.remainingBricks.Remove(this);
             OnBrickDestruction?.Invoke(this);
             SpawnDestroyEffect();
            Destroy(this.gameObject);
