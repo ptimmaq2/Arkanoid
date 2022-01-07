@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,8 @@ public class Platform : MonoBehaviour
     #region Singleton
     private static Platform _instance;
     public static Platform Instance => _instance;
+
+    public bool IsTransforming { get; set; }
 
     private void Awake()
     {
@@ -29,21 +32,32 @@ public class Platform : MonoBehaviour
     #endregion
 
     private Camera mainCamera;
+
     private float platInitialY;
     public float defaultWidth;
+
     public GameObject gameOveri;
     public GameObject victory;
+    public GameObject pauseScreen;
+
     public float defLeftClamp;
     public float defRightClamp;
 
-    private SpriteRenderer spriteRenderer;
+    public bool platformIsTransforming { get; set; }
 
+    public float extendShrinkDuration = 10;
+    public float platformWidth = 2;
+    public float platformHeight = 0.28f; //oletusarvoja, voidaan muuttaa editorissa.
+
+    private SpriteRenderer spriteRenderer;
+    private BoxCollider2D bc;
     // Start is called before the first frame update
     void Start()
     {
         mainCamera = FindObjectOfType<Camera>();
         platInitialY = this.transform.position.y;
         spriteRenderer = GetComponent<SpriteRenderer>();
+        bc = GetComponent<BoxCollider2D>();
     }
 
     // Update is called once per frame
@@ -52,10 +66,56 @@ public class Platform : MonoBehaviour
         PlatformMovement();
     }
 
+    public void StartWidthAnimation(float newWidth)
+    {
+        StartCoroutine(AnimatePlatformWidth(newWidth));
+    }
+
+    public IEnumerator AnimatePlatformWidth(float width)
+    {
+        this.platformIsTransforming = true;
+        this.StartCoroutine(ResetPlatformWidth(this.extendShrinkDuration));
+
+        if (width > this.spriteRenderer.size.x)
+        {
+            //Kasvatetaan kokoa hitaasti, näyttää nätimmältä animoituna.
+            float currentWidth = this.spriteRenderer.size.x;
+            while (currentWidth < width)
+            {
+                currentWidth += Time.deltaTime * 2;
+                this.spriteRenderer.size = new Vector2(currentWidth, platformHeight);
+                //muutetaan myös boxcolliderin kokoa.
+                bc.size = new Vector2(currentWidth, platformHeight);
+                yield return null;
+            }
+        }
+        else
+        {
+            //pienennys, sama periaate.
+            float currentWidth = this.spriteRenderer.size.x;
+            while(currentWidth > width)
+            {
+                currentWidth -= Time.deltaTime * 2;
+                this.spriteRenderer.size = new Vector2(currentWidth, platformHeight);
+                //muutetaan myös boxcolliderin kokoa.
+                bc.size = new Vector2(currentWidth, platformHeight);
+                yield return null;
+            }
+        }
+
+        this.platformIsTransforming = false; 
+    }
+
+    private IEnumerator ResetPlatformWidth(float s)
+    {
+        yield return new WaitForSeconds(s);
+        this.StartWidthAnimation(this.platformWidth);
+    }
+
     void PlatformMovement()
     {
         //Tarkistetaan jos gameover screeni tai victory on päällä.
-        if (!gameOveri.activeInHierarchy && !victory.activeInHierarchy)
+        if (!gameOveri.activeInHierarchy && !victory.activeInHierarchy && !pauseScreen.activeInHierarchy)
         {
             float sizeChange = (defaultWidth - ((defaultWidth / 2) * this.spriteRenderer.size.x)) / 2;
             //Arvot muutetaan dynaamisiksi myöhemmin.

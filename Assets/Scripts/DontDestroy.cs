@@ -13,7 +13,7 @@ public class DontDestroy : MonoBehaviour
         }
         else
         {
-            DontDestroyOnLoad(this); //paska
+            DontDestroyOnLoad(this); 
         }
     }
 }

@@ -11,11 +11,14 @@ public class Brick : MonoBehaviour
 
     public int hitpoints = 1;
     public ParticleSystem destroyEffect;
+    private AudioSource juu;
 
     public static event Action<Brick> OnBrickDestruction;
 
     private void Awake()
     {
+        Camera cam = Camera.main;
+        juu = cam.GetComponent<AudioSource>();
        this.sr = this.GetComponent<SpriteRenderer>();
       //  this.sr.sprite = BricksManager.Instance.Sprites[this.hitpoints - 1]; 
     }
@@ -23,6 +26,7 @@ public class Brick : MonoBehaviour
     {
         Ball ball =  collision.gameObject.GetComponent<Ball>();
         ApplyCollisionLogic(ball);
+        DestroySound();
     }
 
     private void ApplyCollisionLogic(Ball ball)
@@ -34,7 +38,9 @@ public class Brick : MonoBehaviour
         {
             BricksManager.Instance.remainingBricks.Remove(this);
             OnBrickDestruction?.Invoke(this);
+            AfterDestructionSpawnBuffs();
             SpawnDestroyEffect();
+           
            Destroy(this.gameObject);
         }
         //vaihdetaan tiilen spriteä.
@@ -42,6 +48,47 @@ public class Brick : MonoBehaviour
         {
             this.sr.sprite = BricksManager.Instance.Sprites[this.hitpoints - 1];
         }
+    }
+
+    private void DestroySound()
+    {
+       juu.Play(0);
+    }
+
+    private void AfterDestructionSpawnBuffs()
+    {
+        float buffSpawnChance = UnityEngine.Random.Range(0, 100f);
+        float debuffSpawnChance = UnityEngine.Random.Range(0, 100f);
+        bool alreadySpawned = false;
+
+        if(buffSpawnChance <= CollectablesManager.Instance.buffChance)
+        {
+            alreadySpawned = true;
+            Collectable newBuff = this.spawnCollectable(true);
+        }
+        if(debuffSpawnChance <= CollectablesManager.Instance.debuffChance && !alreadySpawned)
+        {
+            Collectable newDeBuff = this.spawnCollectable(false);
+        }
+    }
+
+    private Collectable spawnCollectable(bool isBuff)
+    {
+        List<Collectable> collection;
+        if (isBuff)
+        {
+            collection = CollectablesManager.Instance.AvailableBuffs;
+        }
+        else
+        {
+            collection = CollectablesManager.Instance.AvailableDebuffs;
+        }
+        //haetaan satunnainen buffi/debuffi listasta.
+        int buffIndex = UnityEngine.Random.Range(0, collection.Count);
+        Collectable prefab = collection[buffIndex];
+        Collectable newCollectable = Instantiate(prefab, this.transform.position, Quaternion.identity) as Collectable;
+        
+        return newCollectable;
     }
 
     private void SpawnDestroyEffect()

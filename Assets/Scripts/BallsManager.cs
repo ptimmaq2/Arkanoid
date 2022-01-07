@@ -27,7 +27,6 @@ public class BallsManager : MonoBehaviour
     }
 
 
-
     #endregion
     [SerializeField]
     private Ball ballPreFab;
@@ -92,4 +91,99 @@ public class BallsManager : MonoBehaviour
 
     }
 
+    public void SpawnBalls(Vector3 position, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            Ball spawnedBall = Instantiate(ballPreFab, position, Quaternion.identity) as Ball;
+            Rigidbody2D spawnedBallRb = spawnedBall.GetComponent<Rigidbody2D>();
+            spawnedBallRb.isKinematic = false;
+            spawnedBallRb.AddForce(new Vector2(0, initialSpeed));
+            this.balls.Add(spawnedBall); //Lisätään luotu pallo pallolistaan.
+        }
+    }
+
+    public void ChangeSize(Vector3 vector3, float time)
+    {
+        StartCoroutine(ChangingSize(vector3, time));
+
+    }
+
+    //Käytetään pallon kasvatusbuffiin sekä kutistus debuffiin.
+    public IEnumerator ChangingSize(Vector3 vector3, float time)
+    {
+
+        foreach (var ball in this.balls.ToList())
+        {
+            if (ball != null)
+            {
+                ball.transform.localScale = vector3;
+                yield return new WaitForSeconds(time);
+            }
+
+        }
+
+        foreach (var ball in this.balls.ToList())
+        {
+
+            if (ball != null)
+            {
+                ball.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+            }
+        }
+    }
+    public void ChangeSpeed(float ballSpeed, bool isSpeed, float time)
+    {
+        StartCoroutine(ChangingSpeed(ballSpeed, isSpeed, time));
+    }
+
+    public IEnumerator ChangingSpeed(float ballSpeed, bool isSpeed, float time)
+    {
+        //Tarkistetaan aluksi että pallolla ei ole jo nopeusbuffia tai hitausdebuffia,
+        //etteivät ne stackkaa ja pallo saa järjettömän suurta tai negatiivista nopeutta.
+        if (initialSpeed == 250)
+        {
+            //Tarkistetaan onko nopeus jo käytössä, ei voi saada monta kertaa päällekkäin.
+            if (isSpeed == true)
+            {
+                foreach (var ball in this.balls.ToList())
+                {
+                    if (ball != null)
+                    {
+                        initialSpeed = initialSpeed + ballSpeed;
+                        yield return new WaitForSeconds(time);
+                    }
+                }
+                //Pilkoin foreachit erikseen, koska muuten yritetään muuttaa myös tuhoutuneiden pallojen arvoja.
+                foreach (var ball in this.balls.ToList())
+                {
+                    if (ball != null)
+                    {
+                        //initialSpeed = initialSpeed - ballSpeed;
+                        initialSpeed = 250; //joutui kovakoodaamaan muuten menee välillä jostain syystä negatiiviseksi...
+                    }
+                }
+            }
+            //Pallon hidastaminen debuffi.
+            if (isSpeed == false)
+            {
+                foreach (var ball in this.balls.ToList())
+                {
+                    if (ball != null)
+                    {
+                        //Palloa hidastetaan
+                        initialSpeed = initialSpeed - ballSpeed;
+                        yield return new WaitForSeconds(time);
+                    }
+                }
+                foreach (var ball in this.balls.ToList())
+                {
+                    if (ball != null)
+                    {
+                        initialSpeed = initialSpeed + ballSpeed;
+                    }
+                }
+            }
+        }
+    }
 }

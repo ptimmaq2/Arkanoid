@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -29,6 +30,8 @@ public class GameManager : MonoBehaviour
     #endregion
     public GameObject gameOverScreen;
     public GameObject victoryScreen;
+    public Text nextLevelText;
+    public GameObject nextLevel;
 
     public int AvailableLives;
 
@@ -50,11 +53,20 @@ public class GameManager : MonoBehaviour
     {
         if(BricksManager.Instance.remainingBricks.Count <= 0)
         {
+            StartCoroutine(NextLevelScreen());
             BallsManager.Instance.ResetBalls();
             GameManager.Instance.IsGameStarted = false;
             BricksManager.Instance.loadNextLevel();
         }
     }
+
+    public IEnumerator NextLevelScreen()
+    {
+        nextLevel.SetActive(true);
+        yield return new WaitForSeconds(1.6f);
+        nextLevel.SetActive(false);
+
+    }/***/
 
     public void RestartGame()
     {
@@ -63,6 +75,7 @@ public class GameManager : MonoBehaviour
 
     public void ReturnMainMenu()
     {
+        PlayerPrefs.Save(); // kesken
         SceneManager.LoadScene("MainMenu");
         //GameObject.FindGameObjectWithTag("Music").GetComponent<Music>().PlayMusic();
     }

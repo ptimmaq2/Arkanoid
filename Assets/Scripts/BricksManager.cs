@@ -44,8 +44,7 @@ public class BricksManager : MonoBehaviour
     public int initBricksCount { get; set; }
 
     public int CurrentLevel;
-    public Text nextLevelText;
-
+    
 
     private void Start()
     {

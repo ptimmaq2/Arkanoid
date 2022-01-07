@@ -7,6 +7,8 @@ TagManager:
   - Ball
   - NextLevelText
   - Music
+  - Platform
+  - DeathWall
   layers:
   - Default
   - TransparentFX
@@ -61,6 +63,9 @@ TagManager:
     locked: 0
   - name: Bricks
     uniqueID: 2076925665
+    locked: 0
+  - name: Powerups
+    uniqueID: 3275510133
     locked: 0
   - name: PopUps
     uniqueID: 648451417

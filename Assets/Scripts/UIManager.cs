@@ -9,8 +9,10 @@ public class UIManager : MonoBehaviour
     public Text TargetTxt;
     public Text ScoreTxt;
     public Text LivesTxt;
+    public Text HSTxt;
 
     public int score { get; set; }
+    public int highscore { get; set; }
 
 
     private void Awake()
@@ -23,12 +25,18 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         OnLiveLost(GameManager.Instance.AvailableLives);
+        highscore = PlayerPrefs.GetInt("highscore", highscore);
+        HSTxt.text = "Highscore: " + highscore;
+
     }
 
     private void OnLiveLost(int livesLeft)
     {
-       LivesTxt.text = $@"Lives:
+        //Ilman tätä tarkistusta peli ei toiminut ensimmäisen 3 kuoleman "kierroksen" jälkeen.
+        if (LivesTxt != null) {
+            LivesTxt.text = $@"Lives:
 {livesLeft}";
+        }
     }
 
     private void OnLevelLoaded()
@@ -44,6 +52,20 @@ public class UIManager : MonoBehaviour
         string scoreString = this.score.ToString().PadLeft(5, '0');
         ScoreTxt.text = $@"Score:
 {scoreString}";
+
+       if(this.score > highscore)
+        {
+            highscore = this.score;
+            PlayerPrefs.SetInt("highscore", highscore);
+            string hsString = highscore.ToString().PadLeft(5, '0');
+            HSTxt.text = "Highscore: " + hsString;
+        }
+
+    }
+
+    public void OnApplicationQuit()
+    {
+      PlayerPrefs.Save();
     }
 
     private void OnBrickDestruction(Brick obj)
